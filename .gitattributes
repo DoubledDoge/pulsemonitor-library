@@ -1,0 +1,126 @@
+# Common settings
+*          text=auto
+
+# Documents
+*.bibtex   text diff=bibtex
+*.doc      diff=astextplain
+*.DOC      diff=astextplain
+*.docx     diff=astextplain
+*.DOCX     diff=astextplain
+*.dot      diff=astextplain
+*.DOT      diff=astextplain
+*.pdf      diff=astextplain
+*.PDF      diff=astextplain
+*.rtf      diff=astextplain
+*.RTF      diff=astextplain
+*.md       text diff=markdown
+*.mdx      text diff=markdown
+*.tex      text diff=tex
+*.adoc     text
+*.textile  text
+*.mustache text
+*.csv      text eol=crlf
+*.tab      text
+*.tsv      text
+*.txt      text
+*.sql      text
+*.epub     diff=astextplain
+
+# Graphics
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.tif      binary
+*.tiff     binary
+*.ico      binary
+*.svg      text
+*.eps      binary
+*.webp     binary
+
+# Serialisation
+*.json     text
+*.toml     text
+*.xml      text
+*.yaml     text
+*.yml      text
+
+# Archives
+*.7z       binary
+*.bz       binary
+*.bz2      binary
+*.bzip2    binary
+*.gz       binary
+*.lz       binary
+*.lzma     binary
+*.rar      binary
+*.tar      binary
+*.taz      binary
+*.tbz      binary
+*.tbz2     binary
+*.tgz      binary
+*.tlz      binary
+*.txz      binary
+*.xz       binary
+*.Z        binary
+*.zip      binary
+*.zst      binary
+
+# Text files where line endings should be preserved
+*.patch    -text
+
+# Exclude files from exporting
+.gitattributes export-ignore
+.gitignore     export-ignore
+.gitkeep       export-ignore
+
+# Android / Kotlin project files
+*.kt            text eol=lf linguist-language=Kotlin
+*.kts           text eol=lf linguist-language=Kotlin
+*.java          text eol=lf linguist-language=Java
+*.gradle        text eol=lf linguist-language=Groovy
+*.gradle.kts    text eol=lf linguist-language=Kotlin
+AndroidManifest.xml text eol=lf linguist-language=XML
+res/**.xml      text eol=lf
+res/**          text
+app/**.xml      text eol=lf
+assets/**       text
+*.pro           text
+proguard-rules.pro text
+
+# IDE / build metadata
+local.properties export-ignore
+*.iml           export-ignore
+/.idea/**       export-ignore
+/.gradle/**     export-ignore
+/build/**       export-ignore
+**/build/**     export-ignore
+
+# Binaries and build artifacts
+*.class         binary
+*.dex           binary
+*.aar           binary
+*.jar           binary
+*.apk           binary
+*.ap_           binary
+*.so            binary
+*.jks           binary
+*.keystore      binary
+gradle/wrapper/gradle-wrapper.jar binary
+gradle-wrapper.jar binary
+
+# Exclude files from language statistics
+**/build/**     linguist-vendored
+/.gradle/**     linguist-vendored
+gradle/**       linguist-vendored
+gradle/wrapper/** linguist-vendored
+*.class         linguist-vendored
+*.jar           linguist-vendored
+*.aar           linguist-vendored
+*.apk           linguist-vendored
+*.dex           linguist-vendored
+*.so            linguist-vendored
+*.iml           linguist-vendored
+/.idea/**       linguist-vendored
+local.properties linguist-vendored
+google-services.json linguist-vendored

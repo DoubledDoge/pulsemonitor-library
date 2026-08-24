@@ -1,0 +1,55 @@
+# name: "CodeQL Analysis for Android Project"
+
+# on:
+#   push:
+#     branches: [ "main" ]
+#     paths:
+#       - 'src/**'
+#       - '.github/workflows/codeql.yml'
+#   pull_request:
+#     branches: [main]
+#     paths:
+#       - 'src/**'
+#       - '.github/workflows/codeql.yml'
+#   schedule:
+#     - cron: '30 1 * * 1'  # Weekly scan, Monday 01:30
+
+# jobs:
+#   analyze:
+#     name: Analyze (${{ matrix.language }})
+#     runs-on: ubuntu-latest
+#     permissions:
+#       actions: read
+#       contents: read
+#       security-events: write
+
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v7
+#         with:
+#           fetch-depth: 0
+
+#       - name: Set up JDK
+#         uses: actions/setup-java@v5
+#         with:
+#           distribution: 'temurin'
+#           java-version: '25'
+
+#       - name: Initialize CodeQL
+#         uses: github/codeql-action/init@v4
+#         with:
+#           languages: java-kotlin
+#           build-mode: autobuild
+#           queries: +security-and-quality
+#           config: |
+#             paths:
+#             - src
+
+#       - name: Autobuild
+#         uses: github/codeql-action/autobuild@v3
+
+#       - name: Perform CodeQL Analysis
+#         uses: github/codeql-action/analyze@v3
+#         with:
+#           category: "/language:java-kotlin"
+
