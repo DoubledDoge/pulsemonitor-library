@@ -1,4 +1,4 @@
-# name: "CodeQL Analysis for Android Project"
+# name: "CodeQL Analysis"
 
 # on:
 #   push:
@@ -43,7 +43,7 @@
 #           queries: +security-and-quality
 #           config: |
 #             paths:
-#             - src
+#             - pulsemonitor/src
 
 #       - name: Autobuild
 #         uses: github/codeql-action/autobuild@v3
