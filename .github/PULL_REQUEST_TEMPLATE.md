@@ -17,6 +17,8 @@ Please include:
 - [ ] Performance optimization
 - [ ] Maintenance change
 - [ ] Adding tests
+- [ ] Workflow tweak
+- [ ] Other
 
 ## Checklist
 
