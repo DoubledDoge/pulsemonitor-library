@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-	namespace = "com.pulsemonitor.library"
+	namespace = "io.github.doubleddoge.pulsemonitor"
 
 	compileSdk {
 		version = release(37)
