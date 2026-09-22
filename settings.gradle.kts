@@ -1,4 +1,7 @@
 @file:Suppress("UnstableApiUsage")
+
+include(":demoapp")
+
 pluginManagement {
 	repositories {
 		google {
@@ -24,4 +27,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Pulsemonitor"
+include(":demoapp")
 include(":pulsemonitor")
