@@ -9,7 +9,7 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.ImageView
-import com.example.profiler_overlay.core.ProfilerManager
+import io.github.doubleddoge.pulsemonitor.core.ProfilerManager
 
 // Coroutine imports
 import kotlinx.coroutines.CoroutineScope
@@ -18,7 +18,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.collect
 
 class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
@@ -228,7 +227,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
             profilerManager.performance.collect { snapshot ->
                 if (snapshot == null) return@collect
 
-                val memoryBytes = snapshot.memory.usedBytes
+                val memoryBytes = snapshot.memory.totalPssBytes
                 val memoryMb = memoryBytes / (1024.0 * 1024.0)
 
                 memoryText.text = "RAM: %.8f MB".format(memoryMb)

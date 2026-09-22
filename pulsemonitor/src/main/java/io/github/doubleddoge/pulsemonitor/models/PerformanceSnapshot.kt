@@ -1,4 +1,4 @@
-package com.example.profiler_overlay.models
+package io.github.doubleddoge.pulsemonitor.models
 
 data class PerformanceSnapshot (
     val memory: MemoryStats

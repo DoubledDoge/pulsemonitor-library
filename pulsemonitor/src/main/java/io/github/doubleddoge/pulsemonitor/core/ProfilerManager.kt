@@ -1,10 +1,9 @@
-package com.example.profiler_overlay.core
+package io.github.doubleddoge.pulsemonitor.core
 
 import android.content.Context
-import android.util.Log
 
-import com.example.profiler_overlay.metrics.memory.MemoryCollector
-import com.example.profiler_overlay.models.PerformanceSnapshot
+import io.github.doubleddoge.pulsemonitor.metrics.memory.MemoryCollector
+import io.github.doubleddoge.pulsemonitor.models.PerformanceSnapshot
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,9 +42,7 @@ class ProfilerManager(context: Context) {
             while (isActive) {
                 val memoryStats = memoryCollector.collect()
 
-                val snapshot = PerformanceSnapshot(
-                    memory = memoryStats
-                )
+                val snapshot = collectSnapshot()
 
                 _performance.value = snapshot
 
