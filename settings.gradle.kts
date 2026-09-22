@@ -27,5 +27,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Pulsemonitor"
-include(":demoapp")
 include(":pulsemonitor")
