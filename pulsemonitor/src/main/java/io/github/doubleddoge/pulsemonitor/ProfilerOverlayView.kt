@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.ImageView
 import com.example.profiler_overlay.core.ProfilerManager
+import io.github.doubleddoge.pulsemonitor.metrics.cpu.CpuCollector
 
 // Coroutine imports
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +30,15 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
     // Stores the TextView that displays the RAM reading.
     private lateinit var memoryText: TextView
+
+    //Collects the CPU readings
+    private val cpuCollector = CpuCollector()
+
+    //TextViews that display the CPU readings
+    private lateinit var cpuText: TextView
+    private lateinit var mainThreadText: TextView
+    private lateinit var backgroundText: TextView
+    private lateinit var cpuTimeText: TextView
 
     // Coroutine scope used to observe the StateFlow.
     // It is created when the view is attached and
@@ -194,6 +204,41 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         // Add the RAM reading to the panel.
         panel.addView(memoryText)
 
+        //CPU total (styled)
+        cpuText = TextView(context).apply {
+            text = "CPU: --"
+            textSize = 14f
+            setTextColor(Color.WHITE)
+        }
+
+        //The three readings Underneath CPU (smaller text)
+        mainThreadText = TextView(context).apply {
+            text = "Main thread: --"
+            textSize = 12f
+            setTextColor(Color.WHITE)
+            setPadding(dp(12), 0, 0, 0)
+        }
+
+        backgroundText = TextView(context).apply {
+            text = "Background: --"
+            textSize = 12f
+            setTextColor(Color.WHITE)
+            setPadding(dp(12), 0, 0, 0)
+        }
+
+        cpuTimeText = TextView(context).apply {
+            text = "CPU time: --"
+            textSize = 12f
+            setTextColor(Color.WHITE)
+            setPadding(dp(12), 0, 0, 0)
+        }
+
+        //Put the CPU readings in the panel under RAM
+        panel.addView(cpuText)
+        panel.addView(mainThreadText)
+        panel.addView(backgroundText)
+        panel.addView(cpuTimeText)
+
         addView(
             panel,
             LayoutParams(
@@ -232,6 +277,15 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
                 val memoryMb = memoryBytes / (1024.0 * 1024.0)
 
                 memoryText.text = "RAM: %.8f MB".format(memoryMb)
+
+                //take CPU reading when ram updates
+                val cpu = cpuCollector.collect()
+
+                //show the CPU readings on screen
+                cpuText.text = "CPU: %.1f%%".format(cpu.usagePercent)
+                mainThreadText.text = "Main thread: %.1f%%".format(cpu.mainThreadPercent)
+                backgroundText.text = "Background: %.1f%%".format(cpu.backgroundPercent)
+                cpuTimeText.text = "CPU time: %.1f s".format(cpu.cpuTimeMs / 1000.0)
             }
         }
     }
