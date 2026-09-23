@@ -274,7 +274,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
                 if (snapshot == null) return@collect
 
                 val memoryBytes = snapshot.memory.usedBytes
-                val memoryMb = memoryBytes / (1024.0 * 1024.0)
+                val memoryMb = memoryBytes / BYTES_PER_MB
 
                 memoryText.text = "RAM: %.8f MB".format(memoryMb)
 
@@ -285,7 +285,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
                 cpuText.text = "CPU: %.1f%%".format(cpu.usagePercent)
                 mainThreadText.text = "Main thread: %.1f%%".format(cpu.mainThreadPercent)
                 backgroundText.text = "Background: %.1f%%".format(cpu.backgroundPercent)
-                cpuTimeText.text = "CPU time: %.1f s".format(cpu.cpuTimeMs / 1000.0)
+                cpuTimeText.text = "CPU time: %.1f s".format(cpu.cpuTimeMs / MS_PER_SECOND)
             }
         }
     }
@@ -334,5 +334,13 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
     private fun dp(value: Int): Int {
         return (value * resources.displayMetrics.density).toInt()
+    }
+
+    companion object {
+        // Bytes in one megabyte
+        private const val BYTES_PER_MB = 1024.0 * 1024.0
+
+        // Milliseconds in one second
+        private const val MS_PER_SECOND = 1000.0
     }
 }
