@@ -261,12 +261,10 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         // Observe the latest performance snapshot.
         observationJob = scope.launch {
             profilerManager.performance.collect { snapshot ->
-                if (snapshot == null) return@collect
-
-                val memoryBytes = snapshot.memory.totalPssBytes
-                val memoryMb = memoryBytes / (1024.0 * 1024.0)
-
-                memoryText.text = "RAM: %.2f MB".format(memoryMb)
+                if (snapshot == null) {
+                    return@collect
+                }
+                renderMemory(snapshot.memory)
             }
         }
     }
@@ -363,6 +361,38 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
     // Updating the UI for memory stats
     private fun renderMemory(memory: MemoryStats){
+        // -----------------------------------------------------
+        // Overall RAM
+        // -----------------------------------------------------
+        memoryText.text = formatBytes(memory.totalPssBytes)
 
+        memoryChangeText.text = "Change: ${formatSignedBytes(memory.pssChangeBytes)}"
+
+        memoryPeakText.text = "Peak: ${formatBytes(memory.peakPssBytes)}"
+    }
+
+    // Converts stats into KB, MB, or GB
+    private fun formatBytes(bytes: Long): String {
+        val kb = 1024.0
+        val mb = kb * 1024.0
+        val gb = mb * 1024.0
+
+        return when {
+            bytes >= gb -> "%.2f GB".format(bytes / gb)
+            bytes >= mb -> "%.1f MB".format(bytes / mb)
+            bytes >= kb -> "%.1f KB".format(bytes / kb)
+            else -> "$bytes B"
+        }
+    }
+
+    // Converts changing RAM readings to signed versions for increasing and decreasing
+    private fun formatSignedBytes(bytes: Long): String {
+
+        if (bytes == 0L) {
+            return "0 B"
+        }
+        val sign = if (bytes > 0) "+" else "-"
+
+        return sign + formatBytes(kotlin.math.abs(bytes))
     }
 }
