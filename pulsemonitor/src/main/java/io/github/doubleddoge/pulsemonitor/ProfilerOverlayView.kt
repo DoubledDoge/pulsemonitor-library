@@ -26,8 +26,31 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     private val panel: LinearLayout
     private val profilerManager = ProfilerManager(context)
 
-    // Stores the TextView that displays the RAM reading.
+    //---------------------------------------------------------------------------
+    //  RAM TextViews
+    //---------------------------------------------------------------------------
+    // Overall RAM display
     private lateinit var memoryText: TextView
+    private lateinit var memoryChangeText: TextView
+    private lateinit var memoryPeakText: TextView
+
+    // Detailed application memory
+    private lateinit var memoryPssText: TextView
+    private lateinit var memoryRssText: TextView
+    private lateinit var memoryPrivateDirtyText: TextView
+
+    // Heap
+    private lateinit var memoryJavaHeapText: TextView
+    private lateinit var memoryNativeHeapText: TextView
+
+    // Session statistics
+    private lateinit var memoryMinimumText: TextView
+    private lateinit var memoryAverageText: TextView
+
+    // Device memory
+    private lateinit var deviceAvailableText: TextView
+    private lateinit var deviceTotalText: TextView
+    private lateinit var deviceLowMemoryText: TextView
 
     // Coroutine scope used to observe the StateFlow.
     // It is created when the view is attached and
@@ -37,9 +60,9 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     // Job responsible for collecting the StateFlow.
     private var observationJob: Job? = null
 
-//    val snapshot = profilerManager.collectSnapshot()
-//    val ramBytes = snapshot.memory?.usedBytes
-//    val ramMb = ramBytes?.div((1024.0 * 1024.0))
+    //    val snapshot = profilerManager.collectSnapshot()
+    //    val ramBytes = snapshot.memory?.usedBytes
+    //    val ramMb = ramBytes?.div((1024.0 * 1024.0))
 
 
 

@@ -40,8 +40,6 @@ class ProfilerManager(context: Context) {
         if (collectionJob?.isActive == true) return
         collectionJob = scope.launch {
             while (isActive) {
-                val memoryStats = memoryCollector.collect()
-
                 val snapshot = collectSnapshot()
 
                 _performance.value = snapshot
@@ -61,6 +59,7 @@ class ProfilerManager(context: Context) {
 
     // Use to collect all stats
     fun collectSnapshot(): PerformanceSnapshot {
-        return PerformanceSnapshot(memory = memoryCollector.collect())
+        val memoryStats = memoryCollector.collect() // Memory collection
+        return PerformanceSnapshot(memoryStats)
     }
 }
