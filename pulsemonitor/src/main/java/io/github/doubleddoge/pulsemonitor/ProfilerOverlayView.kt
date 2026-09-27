@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.ImageView
 import io.github.doubleddoge.pulsemonitor.core.ProfilerManager
+import io.github.doubleddoge.pulsemonitor.models.MemoryStats
 
 // Coroutine imports
 import kotlinx.coroutines.CoroutineScope
@@ -204,17 +205,29 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         // Add header to panel
         panel.addView(header)
 
-
-        // Placeholder content
+        // ---------------------------------------------------------
+        // Overall RAM
+        // ---------------------------------------------------------
         memoryText = TextView(context).apply {
-            // Initial text shown before the first reading arrives.
-            text = "RAM: --"
-            textSize = 14f
+            text = "-- MB"
+            textSize = 22f
             setTextColor(Color.WHITE)
         }
-
-        // Add the RAM reading to the panel.
         panel.addView(memoryText)
+
+        memoryChangeText = TextView(context).apply {
+            text = "Change: --"
+            textSize = 12f
+            setTextColor(Color.WHITE)
+        }
+        panel.addView(memoryChangeText)
+
+        memoryPeakText = TextView(context).apply {
+            text = "Peak: --"
+            textSize = 12f
+            setTextColor(Color.WHITE)
+        }
+        panel.addView(memoryPeakText)
 
         addView(
             panel,
@@ -253,7 +266,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
                 val memoryBytes = snapshot.memory.totalPssBytes
                 val memoryMb = memoryBytes / (1024.0 * 1024.0)
 
-                memoryText.text = "RAM: %.8f MB".format(memoryMb)
+                memoryText.text = "RAM: %.2f MB".format(memoryMb)
             }
         }
     }
@@ -302,5 +315,54 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
     private fun dp(value: Int): Int {
         return (value * resources.displayMetrics.density).toInt()
+    }
+
+    // Method for creating the rows of memory stats.
+    private fun createMemoryRow(label: String): Pair<TextView, TextView> {
+        val row = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+
+            layoutParams = LinearLayout.LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp(4)
+            }
+        }
+
+        // Label for the stat
+        val labelText = TextView(context).apply {
+            text = label
+            textSize = 13f
+            setTextColor(Color.WHITE)
+
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                LayoutParams.WRAP_CONTENT,
+                1f
+            )
+        }
+
+        // Exact stat value
+        val valueText = TextView(context).apply {
+            text = "--"
+            textSize = 13f
+            setTextColor(Color.WHITE)
+
+            gravity = Gravity.END
+        }
+
+        row.addView(labelText)
+        row.addView(valueText)
+
+        panel.addView(row)
+
+        return Pair(labelText, valueText)
+    }
+
+    // Updating the UI for memory stats
+    private fun renderMemory(memory: MemoryStats){
+
     }
 }
