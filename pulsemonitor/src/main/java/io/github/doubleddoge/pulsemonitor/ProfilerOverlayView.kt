@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.ImageView
 import io.github.doubleddoge.pulsemonitor.core.ProfilerManager
+import io.github.doubleddoge.pulsemonitor.models.CpuStats
 import io.github.doubleddoge.pulsemonitor.models.MemoryStats
 
 // Coroutine imports
@@ -19,6 +20,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 
 class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
@@ -53,6 +55,14 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     private lateinit var deviceTotalText: TextView
     private lateinit var deviceLowMemoryText: TextView
 
+    //---------------------------------------------------------------------------
+    //  CPU TextViews
+    //-------------------------------------------------------
+    private lateinit var cpuText: TextView
+    private lateinit var mainThreadText: TextView
+    private lateinit var backgroundText: TextView
+    private lateinit var cpuTimeText: TextView
+
     // Coroutine scope used to observe the StateFlow.
     // It is created when the view is attached and
     // cancelled when the view is detached.
@@ -61,9 +71,9 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     // Job responsible for collecting the StateFlow.
     private var observationJob: Job? = null
 
-    //    val snapshot = profilerManager.collectSnapshot()
-    //    val ramBytes = snapshot.memory?.usedBytes
-    //    val ramMb = ramBytes?.div((1024.0 * 1024.0))
+//    val snapshot = profilerManager.collectSnapshot()
+//    val ramBytes = snapshot.memory?.usedBytes
+//    val ramMb = ramBytes?.div((1024.0 * 1024.0))
 
 
 
@@ -229,6 +239,41 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         }
         panel.addView(memoryPeakText)
 
+        //CPU total (styled)
+        cpuText = TextView(context).apply {
+            text = "CPU: --"
+            textSize = 14f
+            setTextColor(Color.WHITE)
+        }
+
+        //The three readings Underneath CPU (smaller text)
+        mainThreadText = TextView(context).apply {
+            text = "Main thread: --"
+            textSize = 12f
+            setTextColor(Color.WHITE)
+            setPadding(dp(12), 0, 0, 0)
+        }
+
+        backgroundText = TextView(context).apply {
+            text = "Background: --"
+            textSize = 12f
+            setTextColor(Color.WHITE)
+            setPadding(dp(12), 0, 0, 0)
+        }
+
+        cpuTimeText = TextView(context).apply {
+            text = "CPU time: --"
+            textSize = 12f
+            setTextColor(Color.WHITE)
+            setPadding(dp(12), 0, 0, 0)
+        }
+
+        //Put the CPU readings in the panel under RAM
+        panel.addView(cpuText)
+        panel.addView(mainThreadText)
+        panel.addView(backgroundText)
+        panel.addView(cpuTimeText)
+
         addView(
             panel,
             LayoutParams(
@@ -265,6 +310,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
                     return@collect
                 }
                 renderMemory(snapshot.memory)
+                renderCpu(snapshot.cpu)
             }
         }
     }
@@ -371,6 +417,14 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         memoryPeakText.text = "Peak: ${formatBytes(memory.peakPssBytes)}"
     }
 
+    private fun renderCpu(cpu: CpuStats){
+        //show the CPU readings on screen
+        cpuText.text = "CPU: %.1f%%".format(cpu.usagePercent)
+        mainThreadText.text = "Main thread: %.1f%%".format(cpu.mainThreadPercent)
+        backgroundText.text = "Background: %.1f%%".format(cpu.backgroundPercent)
+        cpuTimeText.text = "CPU time: %.1f s".format(cpu.cpuTimeMs / MS_PER_SECOND)
+    }
+
     // Converts stats into KB, MB, or GB
     private fun formatBytes(bytes: Long): String {
         val kb = 1024.0
@@ -394,5 +448,13 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         val sign = if (bytes > 0) "+" else "-"
 
         return sign + formatBytes(kotlin.math.abs(bytes))
+    }
+
+    companion object {
+        // Bytes in one megabyte
+        private const val BYTES_PER_MB = 1024.0 * 1024.0
+
+        // Milliseconds in one second
+        private const val MS_PER_SECOND = 1000.0
     }
 }
