@@ -1,6 +1,6 @@
 package io.github.doubleddoge.pulsemonitor.metrics.cpu
 
-import com.example.profiler_overlay.metrics.MetricCollector
+import io.github.doubleddoge.pulsemonitor.metrics.MetricCollector
 import io.github.doubleddoge.pulsemonitor.models.CpuStats
 import java.io.File
 import android.os.SystemClock

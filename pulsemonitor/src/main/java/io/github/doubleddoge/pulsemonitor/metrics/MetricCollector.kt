@@ -1,4 +1,4 @@
-package com.example.profiler_overlay.metrics
+package io.github.doubleddoge.pulsemonitor.metrics
 
 interface MetricCollector<T> {
 

@@ -1,10 +1,10 @@
-package com.example.profiler_overlay.core
+package io.github.doubleddoge.pulsemonitor.core
 
 import android.content.Context
-import android.util.Log
+import io.github.doubleddoge.pulsemonitor.metrics.cpu.CpuCollector
 
-import com.example.profiler_overlay.metrics.memory.MemoryCollector
-import com.example.profiler_overlay.models.PerformanceSnapshot
+import io.github.doubleddoge.pulsemonitor.metrics.memory.MemoryCollector
+import io.github.doubleddoge.pulsemonitor.models.PerformanceSnapshot
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 class ProfilerManager(context: Context) {
     // Fetches the RAM information
     private val memoryCollector = MemoryCollector(context.applicationContext)
+    private val cpuCollector = CpuCollector()
 
     // Mutable state flow - an object that holds the latest performance Snapshot.
     // Kept private from the overlay so that the overlay doesn't
@@ -41,11 +42,7 @@ class ProfilerManager(context: Context) {
         if (collectionJob?.isActive == true) return
         collectionJob = scope.launch {
             while (isActive) {
-                val memoryStats = memoryCollector.collect()
-
-                val snapshot = PerformanceSnapshot(
-                    memory = memoryStats
-                )
+                val snapshot = collectSnapshot()
 
                 _performance.value = snapshot
 
@@ -64,6 +61,8 @@ class ProfilerManager(context: Context) {
 
     // Use to collect all stats
     fun collectSnapshot(): PerformanceSnapshot {
-        return PerformanceSnapshot(memory = memoryCollector.collect())
+        val memoryStats = memoryCollector.collect() // Memory collection
+        val cpuStats = cpuCollector.collect()
+        return PerformanceSnapshot(memoryStats, cpuStats)
     }
 }
