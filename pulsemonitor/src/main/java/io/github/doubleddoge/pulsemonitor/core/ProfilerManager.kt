@@ -2,7 +2,7 @@ package io.github.doubleddoge.pulsemonitor.core
 
 import android.content.Context
 import io.github.doubleddoge.pulsemonitor.metrics.cpu.CpuCollector
-
+import io.github.doubleddoge.pulsemonitor.metrics.network.NetworkCollector
 import io.github.doubleddoge.pulsemonitor.metrics.memory.MemoryCollector
 import io.github.doubleddoge.pulsemonitor.models.PerformanceSnapshot
 
@@ -20,6 +20,7 @@ class ProfilerManager(context: Context) {
     // Fetches the RAM information
     private val memoryCollector = MemoryCollector(context.applicationContext)
     private val cpuCollector = CpuCollector()
+    private val networkCollector = NetworkCollector()
 
     // Mutable state flow - an object that holds the latest performance Snapshot.
     // Kept private from the overlay so that the overlay doesn't
@@ -63,6 +64,7 @@ class ProfilerManager(context: Context) {
     fun collectSnapshot(): PerformanceSnapshot {
         val memoryStats = memoryCollector.collect() // Memory collection
         val cpuStats = cpuCollector.collect()
-        return PerformanceSnapshot(memoryStats, cpuStats)
+        val networkStats = networkCollector.collect()
+        return PerformanceSnapshot(memoryStats, cpuStats, networkStats)
     }
 }
