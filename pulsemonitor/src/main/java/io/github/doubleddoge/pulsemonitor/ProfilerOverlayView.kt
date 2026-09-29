@@ -12,6 +12,8 @@ import android.widget.ImageView
 import io.github.doubleddoge.pulsemonitor.core.ProfilerManager
 import io.github.doubleddoge.pulsemonitor.models.CpuStats
 import io.github.doubleddoge.pulsemonitor.models.MemoryStats
+import io.github.doubleddoge.pulsemonitor.models.NetworkStats
+
 
 // Coroutine imports
 import kotlinx.coroutines.CoroutineScope
@@ -55,13 +57,17 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     private lateinit var deviceTotalText: TextView
     private lateinit var deviceLowMemoryText: TextView
 
-    //---------------------------------------------------------------------------
     //  CPU TextViews
-    //-------------------------------------------------------
     private lateinit var cpuText: TextView
     private lateinit var mainThreadText: TextView
     private lateinit var backgroundText: TextView
     private lateinit var cpuTimeText: TextView
+
+    //  Network TextViews
+    private lateinit var networkText: TextView
+    private lateinit var receivedText: TextView
+    private lateinit var sentText: TextView
+
 
     // Coroutine scope used to observe the StateFlow.
     // It is created when the view is attached and
@@ -215,9 +221,8 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         // Add header to panel
         panel.addView(header)
 
-        // ---------------------------------------------------------
         // Overall RAM
-        // ---------------------------------------------------------
+
         memoryText = TextView(context).apply {
             text = "-- MB"
             textSize = 22f
@@ -274,6 +279,34 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         panel.addView(backgroundText)
         panel.addView(cpuTimeText)
 
+
+        // Network speed (main reading)
+        networkText = TextView(context).apply {
+            text = "Network: --"
+            textSize = 14f
+            setTextColor(Color.WHITE)
+        }
+
+        // The two readings underneath network (smaller and indented)
+        receivedText = TextView(context).apply {
+            text = "Received: --"
+            textSize = 12f
+            setTextColor(Color.WHITE)
+            setPadding(dp(12), 0, 0, 0)
+        }
+
+        sentText = TextView(context).apply {
+            text = "Sent: --"
+            textSize = 12f
+            setTextColor(Color.WHITE)
+            setPadding(dp(12), 0, 0, 0)
+        }
+
+        // Put the network readings in the panel under CPU
+        panel.addView(networkText)
+        panel.addView(receivedText)
+        panel.addView(sentText)
+
         addView(
             panel,
             LayoutParams(
@@ -311,6 +344,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
                 }
                 renderMemory(snapshot.memory)
                 renderCpu(snapshot.cpu)
+                renderNetwork(snapshot.network)
             }
         }
     }
@@ -407,9 +441,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
     // Updating the UI for memory stats
     private fun renderMemory(memory: MemoryStats){
-        // -----------------------------------------------------
         // Overall RAM
-        // -----------------------------------------------------
         memoryText.text = formatBytes(memory.totalPssBytes)
 
         memoryChangeText.text = "Change: ${formatSignedBytes(memory.pssChangeBytes)}"
@@ -423,6 +455,13 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         mainThreadText.text = "Main thread: %.1f%%".format(cpu.mainThreadPercent)
         backgroundText.text = "Background: %.1f%%".format(cpu.backgroundPercent)
         cpuTimeText.text = "CPU time: %.1f s".format(cpu.cpuTimeMs / MS_PER_SECOND)
+    }
+
+    private fun renderNetwork(network: NetworkStats) {
+        // Show the network readings on screen
+        networkText.text = "Network: ${formatBytes(network.bytesPerSecond)}/s"
+        receivedText.text = "Received: ${formatBytes(network.receivedBytes)}"
+        sentText.text = "Sent: ${formatBytes(network.sentBytes)}"
     }
 
     // Converts stats into KB, MB, or GB
