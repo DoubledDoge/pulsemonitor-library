@@ -124,6 +124,13 @@ class MemoryCollector(context: Context) : MetricCollector<MemoryStats> {
         val deviceLowMemory =
             deviceMemoryInfo.lowMemory
 
+        Log.d(
+            "Memory Debug",
+            "PSS KB: ${processMemoryInfo.totalPss}, " +
+                    "PSS Bytes: $totalPssBytes, " +
+                    "Java PSS KB: ${processMemoryInfo.dalvikPss}, " +
+                    "Java PSS Bytes: $javaHeapPssBytes"
+        )
 
         // -----------------------------------------------------
         // Return the complete memory snapshot
