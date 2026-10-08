@@ -23,7 +23,7 @@ class CpuCollector : MetricCollector<CpuStats> {
         private const val MIN_SHARE = 0.0
         private const val MAX_SHARE = 1.0
 
-        // Positions in the stat file (counted after the ")")
+        // Positions in the stat file (counted after the ")"
         private const val USER_TIME_INDEX = 11   // Time spent running app code
         private const val SYSTEM_TIME_INDEX = 12 // Time spent in the system for the app
 
