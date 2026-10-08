@@ -57,13 +57,17 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     private lateinit var deviceTotalText: TextView
     private lateinit var deviceLowMemoryText: TextView
 
+    //---------------------------------------------------------------------------
     //  CPU TextViews
+    //---------------------------------------------------------------------------
     private lateinit var cpuText: TextView
     private lateinit var mainThreadText: TextView
     private lateinit var backgroundText: TextView
     private lateinit var cpuTimeText: TextView
 
+    //---------------------------------------------------------------------------
     //  Network TextViews
+    //---------------------------------------------------------------------------
     private lateinit var networkText: TextView
     private lateinit var receivedText: TextView
     private lateinit var sentText: TextView
