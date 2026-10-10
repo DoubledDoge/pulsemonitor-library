@@ -470,11 +470,11 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     // Show the memory readings on screen
     private fun renderMemory(memory: MemoryStats){
         Log.d("RAM Render", "RAM Renderer has run.")
-        memoryText.text = memory.totalPssBytes.toString()
+        memoryText.text = memory.totalPssMb.toString()
         //memoryChangeText.text = "Change: ${formatSignedBytes(memory.pssChangeBytes)}"
-        memoryJavaHeapText.text = formatBytes(memory.javaHeapUsedBytes)
-        memoryTotalPssText.text = formatBytes(memory.totalPssBytes)
-        memorySessionPeakPssText.text = formatBytes(memory.peakPssBytes)
+        memoryJavaHeapText.text = memory.javaHeapUsedMb.toString()
+        memoryTotalPssText.text = memory.totalPssMb.toString()
+        memorySessionPeakPssText.text = memory.sessionPeakPss.toString()
     }
 
     // Show the CPU readings on screen

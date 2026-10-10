@@ -7,13 +7,13 @@ import io.github.doubleddoge.pulsemonitor.metrics.MetricCollector
 import io.github.doubleddoge.pulsemonitor.models.MemoryStats
 
 /**
- * Collects memory metrics WITHOUT ActivityManager.getProcessMemoryInfo().
+ * Collects exactly 5 memory metrics, without ActivityManager.getProcessMemoryInfo().
  *
- *  PSS            -> Debug.getPss()                         (in-process, no call to system_server)
- *  Java heap      -> Runtime.totalMemory() - freeMemory()   (microseconds)
- *  Java heap max  -> Runtime.maxMemory()
- *  Native heap    -> Debug.getNativeHeapAllocatedSize()     (mallinfo, cheap)
- *  Device memory  -> ActivityManager.getMemoryInfo()        (lightweight, not the smaps-based call)
+ *  Process PSS                 -> Debug.getPss()
+ *  Java/Kotlin heap used       -> Runtime.totalMemory() - Runtime.freeMemory()
+ *  Native heap allocated       -> Debug.getNativeHeapAllocatedSize()
+ *  Java heap utilization (%)   -> heap used / Runtime.maxMemory() * 100
+ *  System available RAM        -> ActivityManager.getMemoryInfo().availMem
  */
 class MemoryCollector(context: Context) : MetricCollector<MemoryStats> {
 
@@ -22,46 +22,44 @@ class MemoryCollector(context: Context) : MetricCollector<MemoryStats> {
 
     private val runtime = Runtime.getRuntime()
 
-    // Reused every call so we don't allocate 2 times a second.
+    // Reused on every call to avoid allocating twice a second.
     private val deviceMemoryInfo = ActivityManager.MemoryInfo()
 
-    // Session statistic
-    private var peakPssBytes = 0L
+    private var _sessionPeakPssMB = 0.00
 
     @Synchronized
     override fun collect(): MemoryStats {
 
-        // 1. PSS (Debug.getPss() returns KB)
-        val pssBytes = Debug.getPss() * 1024L
+        // Process PSS (Debug.getPss() returns KB)
+        val _totalPssMB = Debug.getPss() * 1024.00    // *1024 to convert to from KB to MB
 
-        // 2. Java heap
+        // Update Peak PSS for this session
+        if (_totalPssMB > _sessionPeakPssMB){
+            _sessionPeakPssMB = _totalPssMB
+        }
+
+        // Java/Kotlin heap used + utilization against the configured maximum
         val javaHeapUsedBytes = runtime.totalMemory() - runtime.freeMemory()
         val javaHeapMaxBytes = runtime.maxMemory()
+        val javaHeapUtilizationPercent =
+            if (javaHeapMaxBytes > 0) javaHeapUsedBytes * 100.0 / javaHeapMaxBytes else 0.0
 
-        // 3. Native heap (already in bytes)
+        // Native heap allocated (already in bytes)
         val nativeHeapAllocatedBytes = Debug.getNativeHeapAllocatedSize()
 
-        // 4. Peak PSS
-        if (pssBytes > peakPssBytes) peakPssBytes = pssBytes
-
-        // 5. Device pressure
+        // System available RAM
         activityManager.getMemoryInfo(deviceMemoryInfo)
+        val systemAvailableBytes = deviceMemoryInfo.availMem
 
         return MemoryStats(
-            totalPssBytes = pssBytes,
-            javaHeapUsedBytes = javaHeapUsedBytes,
-            javaHeapMaxBytes = javaHeapMaxBytes,
-            nativeHeapAllocatedBytes = nativeHeapAllocatedBytes,
-            peakPssBytes = peakPssBytes,
-            deviceAvailableBytes = deviceMemoryInfo.availMem,
-            deviceTotalBytes = deviceMemoryInfo.totalMem,
-            deviceLowMemory = deviceMemoryInfo.lowMemory
+            totalPssMb = _totalPssMB,
+            sessionPeakPss = _sessionPeakPssMB,
+            javaHeapUsedMb = javaHeapUsedBytes.toMb(),
+            nativeHeapAllocatedMb = nativeHeapAllocatedBytes.toMb(),
+            javaHeapUtilizationPercent = javaHeapUtilizationPercent,
+            systemAvailableRamMb = systemAvailableBytes.toMb()
         )
     }
 
-    /** Resets the session peak (e.g. a "Reset Session" button). */
-    @Synchronized
-    fun reset() {
-        peakPssBytes = 0L
-    }
+    private fun Long.toMb(): Double = this / (1024.0 * 1024.0)
 }

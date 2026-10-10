@@ -1,27 +1,24 @@
 package io.github.doubleddoge.pulsemonitor.models
 
 /**
- * The 5 memory metrics Android developers check most often.
- * (Fields marked "context" exist only to make a metric readable.)
+ * The 5 memory metrics collected by Pulse Monitor.
+ * Memory values are in MB (1 MB = 1024 * 1024 bytes).
  */
 data class MemoryStats(
 
-    // 1. Total PSS - the app's real memory footprint (shared pages split fairly)
-    val totalPssBytes: Long,
-    //val pssChangeBytes: Long,
+    /** Process PSS (MB) - overall process memory consumption. */
+    val totalPssMb: Double,
+    val sessionPeakPss: Double,
 
-    // 2. Java heap used - what your Kotlin/Java objects occupy
-    val javaHeapUsedBytes: Long,
-    val javaHeapMaxBytes: Long,          // context: the OutOfMemoryError limit
+    /** Java/Kotlin heap used (MB) - object allocation and potential leaks. */
+    val javaHeapUsedMb: Double,
 
-    // 3. Native heap allocated - C/C++ allocations, direct buffers, bitmap pixels (API 26+)
-    val nativeHeapAllocatedBytes: Long,
+    /** Native heap allocated (MB) - native allocation growth. */
+    val nativeHeapAllocatedMb: Double,
 
-    // 4. Peak PSS this session - worst-case footprint, catches short spikes
-    val peakPssBytes: Long,
+    /** Java heap utilization (%) - heap pressure relative to the configured maximum. */
+    val javaHeapUtilizationPercent: Double,
 
-    // 5. Device memory pressure - is the system about to start killing processes?
-    val deviceAvailableBytes: Long,
-    val deviceTotalBytes: Long,          // context
-    val deviceLowMemory: Boolean
+    /** System available RAM (MB) - overall device memory pressure. */
+    val systemAvailableRamMb: Double
 )
