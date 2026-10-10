@@ -8,7 +8,7 @@ data class MemoryStats(
 
     /** Process PSS (MB) - overall process memory consumption. */
     val totalPssMb: Double,
-    val sessionPeakPss: Double,
+    val sessionPeakPssMB: Double,
 
     /** Java/Kotlin heap used (MB) - object allocation and potential leaks. */
     val javaHeapUsedMb: Double,

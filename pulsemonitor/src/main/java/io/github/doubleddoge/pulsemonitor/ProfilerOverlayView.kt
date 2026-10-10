@@ -64,12 +64,6 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     // Job responsible for collecting the StateFlow.
     private var observationJob: Job? = null
 
-//    val snapshot = profilerManager.collectSnapshot()
-//    val ramBytes = snapshot.memory?.usedBytes
-//    val ramMb = ramBytes?.div((1024.0 * 1024.0))
-
-
-
     init {
         layoutParams = LayoutParams(
             LayoutParams.WRAP_CONTENT,
@@ -254,7 +248,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         memoryTotalPssText = totalPssRow.second
 
         // Peak PSS
-        val peakPssRow = createStatRow("Peak this session")
+        val peakPssRow = createStatRow("Session Peak")
         memorySessionPeakPssText = peakPssRow.second
 
 
@@ -469,20 +463,19 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
     // Show the memory readings on screen
     private fun renderMemory(memory: MemoryStats){
-        Log.d("RAM Render", "RAM Renderer has run.")
-        memoryText.text = memory.totalPssMb.toString()
+        memoryText.text = "%.2f MB".format(memory.totalPssMb)
         //memoryChangeText.text = "Change: ${formatSignedBytes(memory.pssChangeBytes)}"
-        memoryJavaHeapText.text = memory.javaHeapUsedMb.toString()
-        memoryTotalPssText.text = memory.totalPssMb.toString()
-        memorySessionPeakPssText.text = memory.sessionPeakPss.toString()
+        memoryJavaHeapText.text = "%.2f MB".format(memory.javaHeapUsedMb)
+        memoryTotalPssText.text = "%.2f MB".format(memory.totalPssMb)
+        memorySessionPeakPssText.text = "%.2f MB".format(memory.sessionPeakPssMB)
     }
 
     // Show the CPU readings on screen
     private fun renderCpu(cpu: CpuStats){
-        cpuText.text = "%.1f%%".format(cpu.usagePercent)
-        mainThreadText.text = "Main thread: %.1f%%".format(cpu.mainThreadPercent)
-        backgroundText.text = "Background: %.1f%%".format(cpu.backgroundPercent)
-        cpuTimeText.text = "CPU time: %.1f s".format(cpu.cpuTimeMs / MS_PER_SECOND)
+        cpuText.text = "%.2f%%".format(cpu.usagePercent)
+        mainThreadText.text = "Main thread: %.2f%%".format(cpu.mainThreadPercent)
+        backgroundText.text = "Background: %.2f%%".format(cpu.backgroundPercent)
+        cpuTimeText.text = "CPU time: %.2f s".format(cpu.cpuTimeMs / MS_PER_SECOND)
     }
 
     // Show the network readings on screen

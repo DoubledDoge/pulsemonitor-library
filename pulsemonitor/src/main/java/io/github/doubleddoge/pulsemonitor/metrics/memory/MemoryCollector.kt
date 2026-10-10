@@ -6,15 +6,6 @@ import android.os.Debug
 import io.github.doubleddoge.pulsemonitor.metrics.MetricCollector
 import io.github.doubleddoge.pulsemonitor.models.MemoryStats
 
-/**
- * Collects exactly 5 memory metrics, without ActivityManager.getProcessMemoryInfo().
- *
- *  Process PSS                 -> Debug.getPss()
- *  Java/Kotlin heap used       -> Runtime.totalMemory() - Runtime.freeMemory()
- *  Native heap allocated       -> Debug.getNativeHeapAllocatedSize()
- *  Java heap utilization (%)   -> heap used / Runtime.maxMemory() * 100
- *  System available RAM        -> ActivityManager.getMemoryInfo().availMem
- */
 class MemoryCollector(context: Context) : MetricCollector<MemoryStats> {
 
     private val activityManager =
@@ -30,8 +21,8 @@ class MemoryCollector(context: Context) : MetricCollector<MemoryStats> {
     @Synchronized
     override fun collect(): MemoryStats {
 
-        // Process PSS (Debug.getPss() returns KB)
-        val _totalPssMB = Debug.getPss() * 1024.00    // *1024 to convert to from KB to MB
+        // Total Process PSS in KB
+        val _totalPssMB = Debug.getPss()  / 1024.00  // convert to MB
 
         // Update Peak PSS for this session
         if (_totalPssMB > _sessionPeakPssMB){
@@ -53,7 +44,7 @@ class MemoryCollector(context: Context) : MetricCollector<MemoryStats> {
 
         return MemoryStats(
             totalPssMb = _totalPssMB,
-            sessionPeakPss = _sessionPeakPssMB,
+            sessionPeakPssMB = _sessionPeakPssMB,
             javaHeapUsedMb = javaHeapUsedBytes.toMb(),
             nativeHeapAllocatedMb = nativeHeapAllocatedBytes.toMb(),
             javaHeapUtilizationPercent = javaHeapUtilizationPercent,
