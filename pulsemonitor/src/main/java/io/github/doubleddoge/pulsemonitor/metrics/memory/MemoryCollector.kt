@@ -2,157 +2,55 @@ package io.github.doubleddoge.pulsemonitor.metrics.memory
 
 import android.app.ActivityManager
 import android.content.Context
-import android.os.Build
 import android.os.Debug
-import android.util.Log
 import io.github.doubleddoge.pulsemonitor.metrics.MetricCollector
 import io.github.doubleddoge.pulsemonitor.models.MemoryStats
 
 class MemoryCollector(context: Context) : MetricCollector<MemoryStats> {
 
-    private val context = context.applicationContext
-    private val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    private val activityManager =
+        context.applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
 
-    // ---------------------------------------------------------
-    // Session statistics
-    // ---------------------------------------------------------
+    private val runtime = Runtime.getRuntime()
 
-    private var firstPssBytes: Long? = null
+    // Reused on every call to avoid allocating twice a second.
+    private val deviceMemoryInfo = ActivityManager.MemoryInfo()
 
-    private var peakPssBytes = 0L
+    private var _sessionPeakPssMB = 0.00
 
-    private var minimumPssBytes = Long.MAX_VALUE
-
-    private var totalPssSamples = 0L
-
-    private var sampleCount = 0L
-
-
+    @Synchronized
     override fun collect(): MemoryStats {
 
-        // -----------------------------------------------------
-        // Get information about THIS application's process
-        // -----------------------------------------------------
+        // Total Process PSS in KB
+        val _totalPssMB = Debug.getPss()  / 1024.00  // convert to MB
 
-        val processMemoryInfo =
-            activityManager.getProcessMemoryInfo(
-                intArrayOf(android.os.Process.myPid())
-            )[0]
-
-
-        // -----------------------------------------------------
-        // Application PSS
-        // -----------------------------------------------------
-
-        val totalPssBytes =
-            processMemoryInfo.totalPss * 1024L
-
-        val privateDirtyBytes =
-            processMemoryInfo.totalPrivateDirty * 1024L
-
-
-        // -----------------------------------------------------
-        // Heap information
-        // -----------------------------------------------------
-
-        val javaHeapPssBytes =
-            processMemoryInfo.dalvikPss * 1024L
-
-        val nativeHeapPssBytes =
-            processMemoryInfo.nativePss * 1024L
-
-
-        // -----------------------------------------------------
-        // RSS
-        // -----------------------------------------------------
-
-        val rssBytes: Long? =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                Debug.getRss() * 1024L
-            } else {
-                null
-            }
-
-        // -----------------------------------------------------
-        // Update session statistics
-        // -----------------------------------------------------
-
-        // Store the first measurement as our baseline.
-        if (firstPssBytes == null) {
-            firstPssBytes = totalPssBytes
+        // Update Peak PSS for this session
+        if (_totalPssMB > _sessionPeakPssMB){
+            _sessionPeakPssMB = _totalPssMB
         }
 
-        // Update peak.
-        if (totalPssBytes > peakPssBytes) {
-            peakPssBytes = totalPssBytes
-        }
+        // Java/Kotlin heap used + utilization against the configured maximum
+        val javaHeapUsedBytes = runtime.totalMemory() - runtime.freeMemory()
+        val javaHeapMaxBytes = runtime.maxMemory()
+        val javaHeapUtilizationPercent =
+            if (javaHeapMaxBytes > 0) javaHeapUsedBytes * 100.0 / javaHeapMaxBytes else 0.0
 
-        // Update minimum.
-        if (totalPssBytes < minimumPssBytes) {
-            minimumPssBytes = totalPssBytes
-        }
+        // Native heap allocated (already in bytes)
+        val nativeHeapAllocatedBytes = Debug.getNativeHeapAllocatedSize()
 
-        // Add this measurement to the average.
-        totalPssSamples += totalPssBytes
-        sampleCount++
-
-
-        val averagePssBytes =
-            totalPssSamples / sampleCount
-
-
-        // Difference from the first measurement.
-        val pssChangeBytes =
-            totalPssBytes - (firstPssBytes ?: totalPssBytes)
-
-
-        // -----------------------------------------------------
-        // Device-wide memory
-        // -----------------------------------------------------
-
-        val deviceMemoryInfo =
-            ActivityManager.MemoryInfo()
-
+        // System available RAM
         activityManager.getMemoryInfo(deviceMemoryInfo)
+        val systemAvailableBytes = deviceMemoryInfo.availMem
 
-        val deviceAvailableBytes =
-            deviceMemoryInfo.availMem
-
-        val deviceTotalBytes =
-            deviceMemoryInfo.totalMem
-
-        val deviceLowMemory =
-            deviceMemoryInfo.lowMemory
-
-
-        // -----------------------------------------------------
-        // Return the complete memory snapshot
-        // -----------------------------------------------------
         return MemoryStats(
-            totalPssBytes = totalPssBytes,
-            rssBytes = rssBytes,
-            privateDirtyBytes = privateDirtyBytes,
-            javaHeapPssBytes = javaHeapPssBytes,
-            nativeHeapPssBytes = nativeHeapPssBytes,
-            peakPssBytes = peakPssBytes,
-            minimumPssBytes = minimumPssBytes,
-            averagePssBytes = averagePssBytes,
-            pssChangeBytes = pssChangeBytes,
-            deviceAvailableBytes = deviceAvailableBytes,
-            deviceTotalBytes = deviceTotalBytes,
-            deviceLowMemory = deviceLowMemory
+            totalPssMb = _totalPssMB,
+            sessionPeakPssMB = _sessionPeakPssMB,
+            javaHeapUsedMb = javaHeapUsedBytes.toMb(),
+            nativeHeapAllocatedMb = nativeHeapAllocatedBytes.toMb(),
+            javaHeapUtilizationPercent = javaHeapUtilizationPercent,
+            systemAvailableRamMb = systemAvailableBytes.toMb()
         )
     }
 
-    /**
-     * Resets all session statistics.
-     * Useful if we implement a "Reset Session" button
-     */
-    fun reset() {
-        firstPssBytes = null
-        peakPssBytes = 0L
-        minimumPssBytes = Long.MAX_VALUE
-        totalPssSamples = 0L
-        sampleCount = 0L
-    }
+    private fun Long.toMb(): Double = this / (1024.0 * 1024.0)
 }

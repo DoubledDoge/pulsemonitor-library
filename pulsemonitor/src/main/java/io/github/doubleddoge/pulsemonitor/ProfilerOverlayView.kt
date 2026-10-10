@@ -22,7 +22,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.collect
 
 class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
@@ -34,39 +33,26 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     //---------------------------------------------------------------------------
     //  RAM TextViews
     //---------------------------------------------------------------------------
-    // Overall RAM display
-    private lateinit var memoryText: TextView
+    private lateinit var systemMemoryAvailableText: TextView
     private lateinit var memoryChangeText: TextView
-    private lateinit var memoryPeakText: TextView
-
-    // Detailed application memory
-    private lateinit var memoryPssText: TextView
-    private lateinit var memoryRssText: TextView
-    private lateinit var memoryPrivateDirtyText: TextView
-
-    // Heap
+    private lateinit var memorySessionPeakPssText: TextView
+    private lateinit var memoryTotalPssText: TextView
     private lateinit var memoryJavaHeapText: TextView
-    private lateinit var memoryNativeHeapText: TextView
 
-    // Session statistics
-    private lateinit var memoryMinimumText: TextView
-    private lateinit var memoryAverageText: TextView
-
-    // Device memory
-    private lateinit var deviceAvailableText: TextView
-    private lateinit var deviceTotalText: TextView
-    private lateinit var deviceLowMemoryText: TextView
-
+    //---------------------------------------------------------------------------
     //  CPU TextViews
+    //---------------------------------------------------------------------------
     private lateinit var cpuText: TextView
-    private lateinit var mainThreadText: TextView
-    private lateinit var backgroundText: TextView
+    private lateinit var cpuMainThreadText: TextView
+    private lateinit var cpuBackgroundText: TextView
     private lateinit var cpuTimeText: TextView
 
+    //---------------------------------------------------------------------------
     //  Network TextViews
+    //---------------------------------------------------------------------------
     private lateinit var networkText: TextView
-    private lateinit var receivedText: TextView
-    private lateinit var sentText: TextView
+    private lateinit var networkReceivedBytesText: TextView
+    private lateinit var networkSentBytesText: TextView
 
 
     // Coroutine scope used to observe the StateFlow.
@@ -76,12 +62,6 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
     // Job responsible for collecting the StateFlow.
     private var observationJob: Job? = null
-
-//    val snapshot = profilerManager.collectSnapshot()
-//    val ramBytes = snapshot.memory?.usedBytes
-//    val ramMb = ramBytes?.div((1024.0 * 1024.0))
-
-
 
     init {
         layoutParams = LayoutParams(
@@ -221,14 +201,13 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         // Add header to panel
         panel.addView(header)
 
-        // Overall RAM
-
-        memoryText = TextView(context).apply {
+        // RAM TextViews
+        systemMemoryAvailableText = TextView(context).apply {
             text = "-- MB"
             textSize = 22f
             setTextColor(Color.WHITE)
         }
-        panel.addView(memoryText)
+        panel.addView(systemMemoryAvailableText)
 
         memoryChangeText = TextView(context).apply {
             text = "Change: --"
@@ -237,12 +216,40 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         }
         panel.addView(memoryChangeText)
 
-        memoryPeakText = TextView(context).apply {
+        memorySessionPeakPssText = TextView(context).apply {
             text = "Peak: --"
             textSize = 12f
             setTextColor(Color.WHITE)
         }
-        panel.addView(memoryPeakText)
+        panel.addView(memorySessionPeakPssText)
+
+        // Detailed Memory
+        val memoryDetailsTitle = TextView(context).apply {
+            text = "MEMORY"
+            textSize = 13f
+            setTextColor(Color.WHITE)
+
+            setPadding(
+                0,
+                dp(12),
+                0,
+                dp(2)
+            )
+        }
+        panel.addView(memoryDetailsTitle)
+
+        // Java/Heap
+        val javaHeapRow = createStatRow("Java/Heap")
+        memoryJavaHeapText = javaHeapRow.second
+
+        // Total PSS Memory
+        val totalPssRow = createStatRow("PSS")
+        memoryTotalPssText = totalPssRow.second
+
+        // Peak PSS
+        val peakPssRow = createStatRow("Session Peak")
+        memorySessionPeakPssText = peakPssRow.second
+
 
         //CPU total (styled)
         cpuText = TextView(context).apply {
@@ -250,62 +257,51 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
             textSize = 14f
             setTextColor(Color.WHITE)
         }
-
-        //The three readings Underneath CPU (smaller text)
-        mainThreadText = TextView(context).apply {
-            text = "Main thread: --"
-            textSize = 12f
-            setTextColor(Color.WHITE)
-            setPadding(dp(12), 0, 0, 0)
-        }
-
-        backgroundText = TextView(context).apply {
-            text = "Background: --"
-            textSize = 12f
-            setTextColor(Color.WHITE)
-            setPadding(dp(12), 0, 0, 0)
-        }
-
-        cpuTimeText = TextView(context).apply {
-            text = "CPU time: --"
-            textSize = 12f
-            setTextColor(Color.WHITE)
-            setPadding(dp(12), 0, 0, 0)
-        }
-
-        //Put the CPU readings in the panel under RAM
         panel.addView(cpuText)
-        panel.addView(mainThreadText)
-        panel.addView(backgroundText)
-        panel.addView(cpuTimeText)
 
+        // CPU Detail
+        val cpuDetailsTitle = TextView(context).apply {
+            text = "CPU"
+            textSize = 13f
+            setTextColor(Color.WHITE)
+
+            setPadding(
+                0,
+                dp(12),
+                0,
+                dp(2)
+            )
+        }
+        panel.addView(cpuDetailsTitle)
+
+        val cpuMainThread = createStatRow("Main Thread")
+        cpuMainThreadText = cpuMainThread.second
+
+        val cpuBackground = createStatRow("Background")
+        cpuBackgroundText = cpuBackground.second
+
+        val cpuTime = createStatRow("CPU Time")
+        cpuTimeText = cpuTime.second
 
         // Network speed (main reading)
         networkText = TextView(context).apply {
             text = "Network: --"
             textSize = 14f
             setTextColor(Color.WHITE)
+            setPadding(
+                0,
+                dp(12),
+                0,
+                dp(2)
+            )
         }
-
-        // The two readings underneath network (smaller and indented)
-        receivedText = TextView(context).apply {
-            text = "Received: --"
-            textSize = 12f
-            setTextColor(Color.WHITE)
-            setPadding(dp(12), 0, 0, 0)
-        }
-
-        sentText = TextView(context).apply {
-            text = "Sent: --"
-            textSize = 12f
-            setTextColor(Color.WHITE)
-            setPadding(dp(12), 0, 0, 0)
-        }
-
-        // Put the network readings in the panel under CPU
         panel.addView(networkText)
-        panel.addView(receivedText)
-        panel.addView(sentText)
+
+        val networkReceivedBytes = createStatRow("Received")
+        networkReceivedBytesText = networkReceivedBytes.second
+
+        val networkSentBytes = createStatRow("Sent")
+        networkSentBytesText = networkSentBytes.second
 
         addView(
             panel,
@@ -395,8 +391,8 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         return (value * resources.displayMetrics.density).toInt()
     }
 
-    // Method for creating the rows of memory stats.
-    private fun createMemoryRow(label: String): Pair<TextView, TextView> {
+    // Method for creating the rows of each stat metric.
+    private fun createStatRow(label: String): Pair<TextView, TextView> {
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -433,52 +429,54 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
         row.addView(labelText)
         row.addView(valueText)
-
         panel.addView(row)
 
         return Pair(labelText, valueText)
     }
 
-    // Updating the UI for memory stats
+    // Show the memory readings on screen
     private fun renderMemory(memory: MemoryStats){
-        // Overall RAM
-        memoryText.text = formatBytes(memory.totalPssBytes)
-
-        memoryChangeText.text = "Change: ${formatSignedBytes(memory.pssChangeBytes)}"
-
-        memoryPeakText.text = "Peak: ${formatBytes(memory.peakPssBytes)}"
+        systemMemoryAvailableText.text = "%.2f MB".format(memory.systemAvailableRamMb)
+        //memoryChangeText.text = "Change: ${formatSignedBytes(memory.pssChangeBytes)}"
+        memoryJavaHeapText.text = "%.2f MB".format(memory.javaHeapUsedMb)
+        memoryTotalPssText.text = "%.2f MB".format(memory.totalPssMb)
+        memorySessionPeakPssText.text = "%.2f MB".format(memory.sessionPeakPssMB)
     }
 
+    // Show the CPU readings on screen
     private fun renderCpu(cpu: CpuStats){
-        //show the CPU readings on screen
-        cpuText.text = "CPU: %.1f%%".format(cpu.usagePercent)
-        mainThreadText.text = "Main thread: %.1f%%".format(cpu.mainThreadPercent)
-        backgroundText.text = "Background: %.1f%%".format(cpu.backgroundPercent)
-        cpuTimeText.text = "CPU time: %.1f s".format(cpu.cpuTimeMs / MS_PER_SECOND)
+        cpuText.text = "%.2f%%".format(cpu.usagePercent)
+        cpuMainThreadText.text = "%.2f%%".format(cpu.mainThreadPercent)
+        cpuBackgroundText.text = "%.2f%%".format(cpu.backgroundPercent)
+        cpuTimeText.text = "%.2f s".format(cpu.cpuTimeMs / MS_PER_SECOND)
     }
 
+    // Show the network readings on screen
     private fun renderNetwork(network: NetworkStats) {
-        // Show the network readings on screen
-        networkText.text = "Network: ${formatBytes(network.bytesPerSecond)}/s"
-        receivedText.text = "Received: ${formatBytes(network.receivedBytes)}"
-        sentText.text = "Sent: ${formatBytes(network.sentBytes)}"
+        networkText.text = "%.2f B/s".format(network.bytesPerSecond.toDouble())
+        networkReceivedBytesText.text =  "%.2f B".format(network.receivedBytes.toDouble())
+        networkSentBytesText.text = "%.2f B".format(network.sentBytes.toDouble())
     }
 
     // Converts stats into KB, MB, or GB
-    private fun formatBytes(bytes: Long): String {
+    fun formatBytes(bytes: Long?): String {
         val kb = 1024.0
         val mb = kb * 1024.0
         val gb = mb * 1024.0
 
+        if (bytes == null) return "N/A"
+
         return when {
             bytes >= gb -> "%.2f GB".format(bytes / gb)
-            bytes >= mb -> "%.1f MB".format(bytes / mb)
-            bytes >= kb -> "%.1f KB".format(bytes / kb)
+            bytes >= mb -> "%.2f MB".format(bytes / mb)
+            bytes >= kb -> "%.2f KB".format(bytes / kb)
             else -> "$bytes B"
         }
     }
 
-    // Converts changing RAM readings to signed versions for increasing and decreasing
+    // Converts changing RAM readings to signed versions
+    // + for increasing
+    // - for decreasing
     private fun formatSignedBytes(bytes: Long): String {
 
         if (bytes == 0L) {

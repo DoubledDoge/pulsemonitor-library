@@ -1,59 +1,24 @@
 package io.github.doubleddoge.pulsemonitor.models
 
-data class MemoryStats (
+/**
+ * The 5 memory metrics collected by Pulse Monitor.
+ * Memory values are in MB (1 MB = 1024 * 1024 bytes).
+ */
+data class MemoryStats(
 
-    // ---------------------------------------------------------
-    // Application memory
-    // ---------------------------------------------------------
+    /** Process PSS (MB) - overall process memory consumption. */
+    val totalPssMb: Double,
+    val sessionPeakPssMB: Double,
 
-    // Proportional Set Size
-    // The main overall app RAM
-    val totalPssBytes: Long,
+    /** Java/Kotlin heap used (MB) - object allocation and potential leaks. */
+    val javaHeapUsedMb: Double,
 
-    // Resident Set Size
-    // The amount of the app's memory currently in RAM.
-    val rssBytes: Long?,
+    /** Native heap allocated (MB) - native allocation growth. */
+    val nativeHeapAllocatedMb: Double,
 
-    // Memory mainly private to this process.
-    val privateDirtyBytes: Long,
+    /** Java heap utilization (%) - heap pressure relative to the configured maximum. */
+    val javaHeapUtilizationPercent: Double,
 
-    // ---------------------------------------------------------
-    // Heap memory
-    // ---------------------------------------------------------
-
-    // PSS attributed to the Dalvik/ART heap.
-    val javaHeapPssBytes: Long,
-
-    // PSS attributed to the native heap.
-    val nativeHeapPssBytes: Long,
-
-    // ---------------------------------------------------------
-    // Session statistics
-    // ---------------------------------------------------------
-
-    // Highest PSS recorded since collection started.
-    val peakPssBytes: Long,
-
-    // Lowest PSS recorded since collection started.
-    val minimumPssBytes: Long,
-
-    // Average PSS recorded since collection started.
-    val averagePssBytes: Long,
-
-    // Difference between current PSS and the first measurement.
-    val pssChangeBytes: Long,
-
-    // ---------------------------------------------------------
-    // Device memory
-    // ---------------------------------------------------------
-
-    // RAM currently available to the entire device.
-    val deviceAvailableBytes: Long,
-
-    // Total physical RAM on the device.
-    val deviceTotalBytes: Long,
-
-    // Whether Android currently considers the device
-    // to be in a low-memory condition.
-    val deviceLowMemory: Boolean
+    /** System available RAM (MB) - overall device memory pressure. */
+    val systemAvailableRamMb: Double
 )
