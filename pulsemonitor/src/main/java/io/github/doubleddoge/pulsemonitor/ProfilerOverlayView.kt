@@ -51,8 +51,8 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     //  Network TextViews
     //---------------------------------------------------------------------------
     private lateinit var networkText: TextView
-    private lateinit var receivedText: TextView
-    private lateinit var sentText: TextView
+    private lateinit var networkReceivedBytesText: TextView
+    private lateinit var networkSentBytesText: TextView
 
 
     // Coroutine scope used to observe the StateFlow.
@@ -288,27 +288,20 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
             text = "Network: --"
             textSize = 14f
             setTextColor(Color.WHITE)
+            setPadding(
+                0,
+                dp(12),
+                0,
+                dp(2)
+            )
         }
-
-        // The two readings underneath network (smaller and indented)
-        receivedText = TextView(context).apply {
-            text = "Received: --"
-            textSize = 12f
-            setTextColor(Color.WHITE)
-            setPadding(dp(12), 0, 0, 0)
-        }
-
-        sentText = TextView(context).apply {
-            text = "Sent: --"
-            textSize = 12f
-            setTextColor(Color.WHITE)
-            setPadding(dp(12), 0, 0, 0)
-        }
-
-        // Put the network readings in the panel under CPU
         panel.addView(networkText)
-        panel.addView(receivedText)
-        panel.addView(sentText)
+
+        val networkReceivedBytes = createStatRow("Received")
+        networkReceivedBytesText = networkReceivedBytes.second
+
+        val networkSentBytes = createStatRow("Sent")
+        networkSentBytesText = networkSentBytes.second
 
         addView(
             panel,
@@ -398,7 +391,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         return (value * resources.displayMetrics.density).toInt()
     }
 
-    // Method for creating the rows of memory stats.
+    // Method for creating the rows of each stat metric.
     private fun createStatRow(label: String): Pair<TextView, TextView> {
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -436,7 +429,6 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
         row.addView(labelText)
         row.addView(valueText)
-
         panel.addView(row)
 
         return Pair(labelText, valueText)
@@ -461,9 +453,9 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
     // Show the network readings on screen
     private fun renderNetwork(network: NetworkStats) {
-        networkText.text = "Network: ${formatBytes(network.bytesPerSecond)}/s"
-        receivedText.text = "Received: ${formatBytes(network.receivedBytes)}"
-        sentText.text = "Sent: ${formatBytes(network.sentBytes)}"
+        networkText.text = "%.2f B".format(network.bytesPerSecond.toDouble())
+        networkReceivedBytesText.text =  "%.2f B".format(network.receivedBytes.toDouble())
+        networkSentBytesText.text = "%.2f B".format(network.sentBytes.toDouble())
     }
 
     // Converts stats into KB, MB, or GB
