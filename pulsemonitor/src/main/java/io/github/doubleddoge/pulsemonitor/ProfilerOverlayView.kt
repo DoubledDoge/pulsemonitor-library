@@ -3,7 +3,6 @@ package io.github.doubleddoge.pulsemonitor
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
-import android.util.Log
 import android.view.Gravity
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -44,8 +43,8 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     //  CPU TextViews
     //---------------------------------------------------------------------------
     private lateinit var cpuText: TextView
-    private lateinit var mainThreadText: TextView
-    private lateinit var backgroundText: TextView
+    private lateinit var cpuMainThreadText: TextView
+    private lateinit var cpuBackgroundText: TextView
     private lateinit var cpuTimeText: TextView
 
     //---------------------------------------------------------------------------
@@ -243,7 +242,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         val javaHeapRow = createStatRow("Java/Heap")
         memoryJavaHeapText = javaHeapRow.second
 
-        // PSS Memory
+        // Total PSS Memory
         val totalPssRow = createStatRow("PSS")
         memoryTotalPssText = totalPssRow.second
 
@@ -258,6 +257,8 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
             textSize = 14f
             setTextColor(Color.WHITE)
         }
+        panel.addView(cpuText)
+
         // CPU Detail
         val cpuDetailsTitle = TextView(context).apply {
             text = "CPU"
@@ -273,34 +274,14 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         }
         panel.addView(cpuDetailsTitle)
 
-        //The three readings Underneath CPU (smaller text)
-        mainThreadText = TextView(context).apply {
-            text = "Main thread: --"
-            textSize = 12f
-            setTextColor(Color.WHITE)
-            setPadding(dp(12), 0, 0, 0)
-        }
+        val cpuMainThread = createStatRow("Main Thread")
+        cpuMainThreadText = cpuMainThread.second
 
-        backgroundText = TextView(context).apply {
-            text = "Background: --"
-            textSize = 12f
-            setTextColor(Color.WHITE)
-            setPadding(dp(12), 0, 0, 0)
-        }
+        val cpuBackground = createStatRow("Background")
+        cpuBackgroundText = cpuBackground.second
 
-        cpuTimeText = TextView(context).apply {
-            text = "CPU time: --"
-            textSize = 12f
-            setTextColor(Color.WHITE)
-            setPadding(dp(12), 0, 0, 0)
-        }
-
-        //Put the CPU readings in the panel under RAM
-        panel.addView(cpuText)
-        panel.addView(mainThreadText)
-        panel.addView(backgroundText)
-        panel.addView(cpuTimeText)
-
+        val cpuTime = createStatRow("CPU Time")
+        cpuTimeText = cpuTime.second
 
         // Network speed (main reading)
         networkText = TextView(context).apply {
@@ -473,9 +454,9 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     // Show the CPU readings on screen
     private fun renderCpu(cpu: CpuStats){
         cpuText.text = "%.2f%%".format(cpu.usagePercent)
-        mainThreadText.text = "Main thread: %.2f%%".format(cpu.mainThreadPercent)
-        backgroundText.text = "Background: %.2f%%".format(cpu.backgroundPercent)
-        cpuTimeText.text = "CPU time: %.2f s".format(cpu.cpuTimeMs / MS_PER_SECOND)
+        cpuMainThreadText.text = "%.2f%%".format(cpu.mainThreadPercent)
+        cpuBackgroundText.text = "%.2f%%".format(cpu.backgroundPercent)
+        cpuTimeText.text = "%.2f s".format(cpu.cpuTimeMs / MS_PER_SECOND)
     }
 
     // Show the network readings on screen
