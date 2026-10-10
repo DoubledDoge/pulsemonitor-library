@@ -3,6 +3,7 @@ package io.github.doubleddoge.pulsemonitor
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.util.Log
 import android.view.Gravity
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -468,9 +469,10 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
     // Show the memory readings on screen
     private fun renderMemory(memory: MemoryStats){
-        memoryText.text = formatBytes(memory.totalPssBytes)
-        memoryChangeText.text = "Change: ${formatSignedBytes(memory.pssChangeBytes)}"
-        memoryJavaHeapText.text = formatBytes(memory.javaHeapPssBytes)
+        Log.d("RAM Render", "RAM Renderer has run.")
+        memoryText.text = memory.totalPssBytes.toString()
+        //memoryChangeText.text = "Change: ${formatSignedBytes(memory.pssChangeBytes)}"
+        memoryJavaHeapText.text = formatBytes(memory.javaHeapUsedBytes)
         memoryTotalPssText.text = formatBytes(memory.totalPssBytes)
         memorySessionPeakPssText.text = formatBytes(memory.peakPssBytes)
     }

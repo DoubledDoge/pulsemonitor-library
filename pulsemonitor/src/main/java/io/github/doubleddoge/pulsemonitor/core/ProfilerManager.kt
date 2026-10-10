@@ -1,6 +1,7 @@
 package io.github.doubleddoge.pulsemonitor.core
 
 import android.content.Context
+import android.util.Log
 import io.github.doubleddoge.pulsemonitor.metrics.cpu.CpuCollector
 import io.github.doubleddoge.pulsemonitor.metrics.network.NetworkCollector
 import io.github.doubleddoge.pulsemonitor.metrics.memory.MemoryCollector
@@ -47,7 +48,7 @@ class ProfilerManager(context: Context) {
 
                 _performance.value = snapshot
 
-                delay(500)
+                delay(1000)
             }
         }
     }
@@ -62,7 +63,7 @@ class ProfilerManager(context: Context) {
 
     // Use to collect all stats
     fun collectSnapshot(): PerformanceSnapshot {
-        val memoryStats = memoryCollector.collect() // Memory collection
+        val memoryStats = memoryCollector.collect()
         val cpuStats = cpuCollector.collect()
         val networkStats = networkCollector.collect()
         return PerformanceSnapshot(memoryStats, cpuStats, networkStats)

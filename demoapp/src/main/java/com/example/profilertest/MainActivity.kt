@@ -68,21 +68,14 @@ fun MemoryTestScreen( modifier: Modifier = Modifier ) {
 
         Button(
             onClick = {
-
-                /*
-                 * Allocate another 10 MB.
-                 *
-                 * The reference is stored in allocatedMemory so
-                 * that the memory remains allocated.
-                 */
                 val block = ByteArray(10 * 1024 * 1024)
+
+                // Writing a non-zero value forces the OS to commit every page.
+                java.util.Arrays.fill(block, 1.toByte())
 
                 allocatedMemory.add(block)
 
-                Log.d(
-                    "ProfilerRAM",
-                    "Allocated another 10 MB"
-                )
+                Log.d("ProfilerRAM", "Allocated another 10 MB")
             }
         ) {
             Text("Allocate 10 MB")

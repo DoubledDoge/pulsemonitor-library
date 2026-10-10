@@ -2,164 +2,66 @@ package io.github.doubleddoge.pulsemonitor.metrics.memory
 
 import android.app.ActivityManager
 import android.content.Context
-import android.os.Build
 import android.os.Debug
-import android.util.Log
 import io.github.doubleddoge.pulsemonitor.metrics.MetricCollector
 import io.github.doubleddoge.pulsemonitor.models.MemoryStats
 
+/**
+ * Collects memory metrics WITHOUT ActivityManager.getProcessMemoryInfo().
+ *
+ *  PSS            -> Debug.getPss()                         (in-process, no call to system_server)
+ *  Java heap      -> Runtime.totalMemory() - freeMemory()   (microseconds)
+ *  Java heap max  -> Runtime.maxMemory()
+ *  Native heap    -> Debug.getNativeHeapAllocatedSize()     (mallinfo, cheap)
+ *  Device memory  -> ActivityManager.getMemoryInfo()        (lightweight, not the smaps-based call)
+ */
 class MemoryCollector(context: Context) : MetricCollector<MemoryStats> {
 
-    private val context = context.applicationContext
-    private val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    private val activityManager =
+        context.applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
 
-    // ---------------------------------------------------------
-    // Session statistics
-    // ---------------------------------------------------------
+    private val runtime = Runtime.getRuntime()
 
-    private var firstPssBytes: Long? = null
+    // Reused every call so we don't allocate 2 times a second.
+    private val deviceMemoryInfo = ActivityManager.MemoryInfo()
 
+    // Session statistic
     private var peakPssBytes = 0L
 
-    private var minimumPssBytes = Long.MAX_VALUE
-
-    private var totalPssSamples = 0L
-
-    private var sampleCount = 0L
-
-
+    @Synchronized
     override fun collect(): MemoryStats {
 
-        // -----------------------------------------------------
-        // Get information about THIS application's process
-        // -----------------------------------------------------
+        // 1. PSS (Debug.getPss() returns KB)
+        val pssBytes = Debug.getPss() * 1024L
 
-        val processMemoryInfo =
-            activityManager.getProcessMemoryInfo(
-                intArrayOf(android.os.Process.myPid())
-            )[0]
+        // 2. Java heap
+        val javaHeapUsedBytes = runtime.totalMemory() - runtime.freeMemory()
+        val javaHeapMaxBytes = runtime.maxMemory()
 
+        // 3. Native heap (already in bytes)
+        val nativeHeapAllocatedBytes = Debug.getNativeHeapAllocatedSize()
 
-        // -----------------------------------------------------
-        // Application PSS
-        // -----------------------------------------------------
+        // 4. Peak PSS
+        if (pssBytes > peakPssBytes) peakPssBytes = pssBytes
 
-        val totalPssBytes =
-            processMemoryInfo.totalPss * 1024L
-
-        val privateDirtyBytes =
-            processMemoryInfo.totalPrivateDirty * 1024L
-
-
-        // -----------------------------------------------------
-        // Heap information
-        // -----------------------------------------------------
-
-        val javaHeapPssBytes =
-            processMemoryInfo.dalvikPss * 1024L
-
-        val nativeHeapPssBytes =
-            processMemoryInfo.nativePss * 1024L
-
-
-        // -----------------------------------------------------
-        // RSS
-        // -----------------------------------------------------
-
-        val rssBytes: Long? =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                Debug.getRss() * 1024L
-            } else {
-                null
-            }
-
-        // -----------------------------------------------------
-        // Update session statistics
-        // -----------------------------------------------------
-
-        // Store the first measurement as our baseline.
-        if (firstPssBytes == null) {
-            firstPssBytes = totalPssBytes
-        }
-
-        // Update peak.
-        if (totalPssBytes > peakPssBytes) {
-            peakPssBytes = totalPssBytes
-        }
-
-        // Update minimum.
-        if (totalPssBytes < minimumPssBytes) {
-            minimumPssBytes = totalPssBytes
-        }
-
-        // Add this measurement to the average.
-        totalPssSamples += totalPssBytes
-        sampleCount++
-
-
-        val averagePssBytes =
-            totalPssSamples / sampleCount
-
-
-        // Difference from the first measurement.
-        val pssChangeBytes =
-            totalPssBytes - (firstPssBytes ?: totalPssBytes)
-
-
-        // -----------------------------------------------------
-        // Device-wide memory
-        // -----------------------------------------------------
-
-        val deviceMemoryInfo =
-            ActivityManager.MemoryInfo()
-
+        // 5. Device pressure
         activityManager.getMemoryInfo(deviceMemoryInfo)
 
-        val deviceAvailableBytes =
-            deviceMemoryInfo.availMem
-
-        val deviceTotalBytes =
-            deviceMemoryInfo.totalMem
-
-        val deviceLowMemory =
-            deviceMemoryInfo.lowMemory
-
-        Log.d(
-            "Memory Debug",
-            "PSS KB: ${processMemoryInfo.totalPss}, " +
-                    "PSS Bytes: $totalPssBytes, " +
-                    "Java PSS KB: ${processMemoryInfo.dalvikPss}, " +
-                    "Java PSS Bytes: $javaHeapPssBytes"
-        )
-
-        // -----------------------------------------------------
-        // Return the complete memory snapshot
-        // -----------------------------------------------------
         return MemoryStats(
-            totalPssBytes = totalPssBytes,
-            rssBytes = rssBytes,
-            privateDirtyBytes = privateDirtyBytes,
-            javaHeapPssBytes = javaHeapPssBytes,
-            nativeHeapPssBytes = nativeHeapPssBytes,
+            totalPssBytes = pssBytes,
+            javaHeapUsedBytes = javaHeapUsedBytes,
+            javaHeapMaxBytes = javaHeapMaxBytes,
+            nativeHeapAllocatedBytes = nativeHeapAllocatedBytes,
             peakPssBytes = peakPssBytes,
-            minimumPssBytes = minimumPssBytes,
-            averagePssBytes = averagePssBytes,
-            pssChangeBytes = pssChangeBytes,
-            deviceAvailableBytes = deviceAvailableBytes,
-            deviceTotalBytes = deviceTotalBytes,
-            deviceLowMemory = deviceLowMemory
+            deviceAvailableBytes = deviceMemoryInfo.availMem,
+            deviceTotalBytes = deviceMemoryInfo.totalMem,
+            deviceLowMemory = deviceMemoryInfo.lowMemory
         )
     }
 
-    /**
-     * Resets all session statistics.
-     * Useful if we implement a "Reset Session" button
-     */
+    /** Resets the session peak (e.g. a "Reset Session" button). */
+    @Synchronized
     fun reset() {
-        firstPssBytes = null
         peakPssBytes = 0L
-        minimumPssBytes = Long.MAX_VALUE
-        totalPssSamples = 0L
-        sampleCount = 0L
     }
 }
