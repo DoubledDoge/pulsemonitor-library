@@ -33,7 +33,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
     //---------------------------------------------------------------------------
     //  RAM TextViews
     //---------------------------------------------------------------------------
-    private lateinit var memoryText: TextView
+    private lateinit var systemMemoryAvailableText: TextView
     private lateinit var memoryChangeText: TextView
     private lateinit var memorySessionPeakPssText: TextView
     private lateinit var memoryTotalPssText: TextView
@@ -202,12 +202,12 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
         panel.addView(header)
 
         // RAM TextViews
-        memoryText = TextView(context).apply {
+        systemMemoryAvailableText = TextView(context).apply {
             text = "-- MB"
             textSize = 22f
             setTextColor(Color.WHITE)
         }
-        panel.addView(memoryText)
+        panel.addView(systemMemoryAvailableText)
 
         memoryChangeText = TextView(context).apply {
             text = "Change: --"
@@ -436,7 +436,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
     // Show the memory readings on screen
     private fun renderMemory(memory: MemoryStats){
-        memoryText.text = "%.2f MB".format(memory.totalPssMb)
+        systemMemoryAvailableText.text = "%.2f MB".format(memory.systemAvailableRamMb)
         //memoryChangeText.text = "Change: ${formatSignedBytes(memory.pssChangeBytes)}"
         memoryJavaHeapText.text = "%.2f MB".format(memory.javaHeapUsedMb)
         memoryTotalPssText.text = "%.2f MB".format(memory.totalPssMb)
@@ -453,7 +453,7 @@ class ProfilerOverlayView(context: Context) : FrameLayout(context) {
 
     // Show the network readings on screen
     private fun renderNetwork(network: NetworkStats) {
-        networkText.text = "%.2f B".format(network.bytesPerSecond.toDouble())
+        networkText.text = "%.2f B/s".format(network.bytesPerSecond.toDouble())
         networkReceivedBytesText.text =  "%.2f B".format(network.receivedBytes.toDouble())
         networkSentBytesText.text = "%.2f B".format(network.sentBytes.toDouble())
     }
