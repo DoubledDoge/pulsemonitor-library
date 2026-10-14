@@ -20,7 +20,7 @@ class NetworkCollector : MetricCollector<NetworkStats>{
 
     // starting counter , count when collector started
     private val startReceived = TrafficStats.getUidRxBytes(uid).coerceAtLeast(NO_BYTES)
-    private var startSent = SystemClock.elapsedRealtime().coerceAtLeast(NO_BYTES)
+    private val startSent = TrafficStats.getUidTxBytes(uid).coerceAtLeast(NO_BYTES)
 
     //last reading, used to work out speed
     private var lastReceived = startReceived
