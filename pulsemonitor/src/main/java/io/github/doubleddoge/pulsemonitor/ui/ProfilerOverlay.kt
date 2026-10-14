@@ -1,4 +1,4 @@
-package io.github.doubleddoge.pulsemonitor
+package io.github.doubleddoge.pulsemonitor.ui
 
 import android.R
 import android.app.Activity
