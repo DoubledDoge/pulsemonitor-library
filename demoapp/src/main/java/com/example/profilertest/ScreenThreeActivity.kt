@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.example.profilertest.ui.theme.ProfilerTestTheme
-import io.github.doubleddoge.pulsemonitor.ProfilerOverlay
+import io.github.doubleddoge.pulsemonitor.ui.ProfilerOverlay
 
 class ScreenThreeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

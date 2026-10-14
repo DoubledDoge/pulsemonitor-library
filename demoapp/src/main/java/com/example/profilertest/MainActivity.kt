@@ -17,7 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.profilertest.ui.theme.ProfilerTestTheme
-import io.github.doubleddoge.pulsemonitor.ProfilerOverlay
+import io.github.doubleddoge.pulsemonitor.ui.ProfilerOverlay
 import android.content.Intent
 //import com.example.profiler_overlay.metrics.memory.MemoryCollector
 
