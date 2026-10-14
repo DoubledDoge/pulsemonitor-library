@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.profilertest.ui.theme.ProfilerTestTheme
 import io.github.doubleddoge.pulsemonitor.ui.ProfilerOverlay
+import android.content.Intent
 //import com.example.profiler_overlay.metrics.memory.MemoryCollector
 
 class MainActivity : ComponentActivity() {
@@ -30,7 +31,12 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize()
                 ) { innerPadding ->
 
-                    MemoryTestScreen(
+                    BurnScreen(
+                        title = "Screen 1",
+                        nextLabel = "Go to Screen 2",
+                        onNext = {
+                            startActivity(Intent(this@MainActivity, ScreenTwoActivity::class.java))
+                        },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
