@@ -29,8 +29,5 @@ class ScreenTwoActivity : ComponentActivity() {
                 }
             }
         }
-
-        // Show the profiler on this screen too
-        ProfilerOverlay.attach(this)
     }
 }
