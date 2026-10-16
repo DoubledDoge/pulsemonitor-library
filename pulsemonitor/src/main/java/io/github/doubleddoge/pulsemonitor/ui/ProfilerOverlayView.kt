@@ -42,13 +42,13 @@ import kotlinx.coroutines.launch
 @SuppressLint("ViewConstructor")
 class ProfilerOverlayView(
     context: Context,
+    private val profilerManager: ProfilerManager,  // Shared engine, passed in by ProfilerOverlay
     private val onExport: (() -> Unit)? = null,
     private val onNewSession: (() -> Unit)? = null,
     private val onClose: (() -> Unit)? = null
 ) : FrameLayout(context) {
 
     private var expanded = false
-    private val profilerManager = ProfilerManager(context)
 
     private val d = resources.displayMetrics.density
     private fun dp(v: Int) = (v * d).toInt()
@@ -140,8 +140,7 @@ class ProfilerOverlayView(
 
         viewScope = scope
 
-        // Start collecting metrics.
-        profilerManager.start()
+
 
         // Observe the latest performance snapshot.
         observationJob = scope.launch {
@@ -164,8 +163,6 @@ class ProfilerOverlayView(
         observationJob?.cancel()
         observationJob = null
 
-        // Stop the metric collection loop.
-        profilerManager.stop()
 
         // Cancel the view's observation scope.
         viewScope?.cancel()
