@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
 
         // Keep the profiler overlay attached to this Activity.
         // This is independent of the Compose UI below.
-        ProfilerOverlay.attach(this)
+        ProfilerOverlay.install(this)
     }
 }
 

@@ -2,7 +2,10 @@ package io.github.doubleddoge.pulsemonitor.ui
 
 import android.R
 import android.app.Activity
+import android.app.Application          // NEW
+import android.os.Bundle                // NEW
 import android.view.Gravity
+import android.view.View                // NEW
 import android.widget.FrameLayout
 import io.github.doubleddoge.pulsemonitor.core.ProfilerManager
 
@@ -19,12 +22,48 @@ object ProfilerOverlay {
             it.start()
         }
 
+    // NEW: A label we stick on the overlay so we can tell if a screen already has one
+    private const val OVERLAY_TAG = "pulsemonitor_overlay"
+
+    // NEW: Remembers if install() has already run, so it only happens once
+    private var installed = false
+
+    // NEW: The app calls this ONCE. After that, every screen gets the overlay automatically.
+    fun install(activity: Activity) {
+        if (installed) return
+        installed = true
+
+        // Ask Android to tell us whenever any screen in the app changes
+        activity.application.registerActivityLifecycleCallbacks(screenWatcher)
+    }
+
+    // NEW: Android calls these automatically as screens open and close
+    private val screenWatcher = object : Application.ActivityLifecycleCallbacks {
+
+        // A screen is about to show, so add the overlay to it
+        override fun onActivityStarted(activity: Activity) = attach(activity)
+
+        // We don't need these, but Android requires them to exist
+        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+        override fun onActivityResumed(activity: Activity) {}
+        override fun onActivityPaused(activity: Activity) {}
+        override fun onActivityStopped(activity: Activity) {}
+        override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+        override fun onActivityDestroyed(activity: Activity) {}
+    }
+
     fun attach(activity: Activity) {
         val root = activity.findViewById<FrameLayout>(
             R.id.content
         )
 
-        val overlay = ProfilerOverlayView(activity, sharedManager(activity))
+        // NEW: If this screen already has an overlay (e.g. you came back to it), don't add another
+        if (root.findViewWithTag<View>(OVERLAY_TAG) != null) return
+
+        // NEW: .apply { tag = ... } labels the overlay so the check above can find it
+        val overlay = ProfilerOverlayView(activity, sharedManager(activity)).apply {
+            tag = OVERLAY_TAG
+        }
 
         root.addView(
             overlay,

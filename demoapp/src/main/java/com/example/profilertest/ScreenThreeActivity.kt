@@ -32,7 +32,5 @@ class ScreenThreeActivity : ComponentActivity() {
                 }
             }
         }
-
-        ProfilerOverlay.attach(this)
     }
 }
