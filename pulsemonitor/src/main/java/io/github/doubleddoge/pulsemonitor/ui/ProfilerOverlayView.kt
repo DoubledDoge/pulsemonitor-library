@@ -225,7 +225,7 @@ class ProfilerOverlayView(
         })
 
         row.addView(
-            icon(R.drawable.ic_chevron_down, Palette.TEXT_MUTED),
+            icon(R.drawable.pm_ic_chevron_down, Palette.TEXT_MUTED),
             LinearLayout.LayoutParams(dp(18), dp(18))
         )
         return row
@@ -290,13 +290,13 @@ class ProfilerOverlayView(
         }, LinearLayout.LayoutParams(0, WRAP, 1f).apply { leftMargin = dp(10) })
 
         header.addView(
-            icon(R.drawable.ic_collapse, Palette.TEXT_MUTED) { toggle() },
+            icon(R.drawable.pm_ic_collapse, Palette.TEXT_MUTED) { toggle() },
             LinearLayout.LayoutParams(dp(22), dp(22)).apply { rightMargin = dp(10) }
         )
 
         if (onClose != null) {
             header.addView(
-                icon(R.drawable.close_icon, Palette.TEXT_MUTED) { onClose.invoke() },
+                icon(R.drawable.pm_close_icon, Palette.TEXT_MUTED) { onClose.invoke() },
                 LinearLayout.LayoutParams(dp(22), dp(22))
             )
         }
@@ -358,7 +358,7 @@ class ProfilerOverlayView(
             if (onExport != null) {
                 // YOUR ICON: export / download
                 actions.addView(
-                    button("Export", R.drawable.ic_export, Palette.BUTTON_BLUE) { onExport.invoke() },
+                    button("Export", R.drawable.pm_ic_export, Palette.BUTTON_BLUE) { onExport.invoke() },
                     LinearLayout.LayoutParams(0, WRAP, 1f).apply {
                         rightMargin = if (onNewSession != null) dp(6) else 0
                     }
@@ -367,7 +367,7 @@ class ProfilerOverlayView(
             if (onNewSession != null) {
                 // YOUR ICON: refresh / new session
                 actions.addView(
-                    button("New Session", R.drawable.ic_refresh, Palette.BUTTON_BLUE) { onNewSession.invoke() },
+                    button("New Session", R.drawable.pm_ic_refresh, Palette.BUTTON_BLUE) { onNewSession.invoke() },
                     LinearLayout.LayoutParams(0, WRAP, 1f).apply {
                         leftMargin = if (onExport != null) dp(6) else 0
                     }
@@ -379,7 +379,7 @@ class ProfilerOverlayView(
         if (onClose != null) {
             // YOUR ICON: power / stop
             root.addView(
-                button("Close", R.drawable.ic_power, Palette.BUTTON_RED) { onClose.invoke() },
+                button("Close", R.drawable.pm_ic_power, Palette.BUTTON_RED) { onClose.invoke() },
                 LinearLayout.LayoutParams(MATCH, WRAP).apply {
                     leftMargin = dp(12); rightMargin = dp(12); bottomMargin = dp(12)
                     topMargin = if (onExport == null && onNewSession == null) dp(12) else 0
@@ -408,7 +408,7 @@ class ProfilerOverlayView(
     /** App icon (R.drawable.icon) sitting in a dark circle. */
     private fun logo(sizePx: Int): View {
         return ImageView(context).apply {
-            setImageResource(R.drawable.icon)
+            setImageResource(R.drawable.pm_icon)
             setColorFilter(Palette.ACCENT)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
             background = Palette.box(Palette.SURFACE_SUNKEN, (sizePx / 2).toFloat())

@@ -1,11 +1,13 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.compose)
     `maven-publish`
 }
 
 android {
     namespace = "io.github.doubleddoge.pulsemonitor"
+
+    // Every resource in the library must start with pm_ so it can't clash with the host app
+    resourcePrefix = "pm_"
 
     compileSdk {
         version = release(37)
@@ -18,9 +20,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    buildFeatures {
-        compose = true
     }
 
     publishing {
@@ -35,7 +34,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/DoubledDoge/pulsemonitor")
+            url = uri("https://maven.pkg.github.com/DoubledDoge/pulsemonitor-library")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
@@ -58,14 +57,9 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.core.ktx)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
-    debugImplementation(libs.androidx.compose.ui.tooling)
+    // The only thing the library needs: coroutines for the background loop and StateFlow
+    implementation(libs.kotlinx.coroutines.android)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
